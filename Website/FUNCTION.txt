@@ -1,0 +1,25 @@
+THIS FILE IS IMPORTANT. BECAUSE I WANT TO CLEAR 
+AND THIS IS A VERY BIG PROJECT FOR ME (PERSONAL)
+
+================================================================
+            ITS A MAP OR A PART OF THE FULL STRUCTURE
+                        AND ALSO FUCTIONS 
+
+WEBSITE[FOLDER]:
+    * INDEX.HTML{
+        STRUCTURE OF THE WEBSITE
+    }
+
+    *CSS[FOLDER]:
+        STYLE.CSS{DESIGN}
+
+    *BACKEND[FOLDER]:
+        SCRIPT.JS{
+            THIS IS THE MAIN FILE FOR ME
+
+            FUCTIONS:
+                1. IT WILL TOOK THE DATA FROM .HTML FILE AND SENT TO SERVER.
+                    -> IF THAT SENTS TRUE, THEN IT SHOWS THE SUCCESSFUL MESSAGE 
+                        AND SERVER WILL SENT TO THE MAIN PAGE
+                    -> IF THAT SENTS FALSE, THEN IT SHOWS THE FAILURE
+        }
