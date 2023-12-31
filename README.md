@@ -1,57 +1,44 @@
-Absolutely, your vision and enthusiasm are commendable! Here's an enhanced version of your project outline with added contact information:
+# Project Structure
 
-```markdown
-# THE JOURNEY TO BE BETTER - A PRIVATE MESSENGER AND SPA BASED APP
+## PICTURES
+This folder contains subfolders for different types of images.
 
-================================================================
+- **icons:** Stores icons.
+- **other_images:** Stores miscellaneous images.
+- **ServerHOST:** Reserved for server-related images.
 
-## Overview
+## LiveServer
+This directory is related to the live server functionality.
 
-This project is a full-stack development endeavor, aiming to create a private messenger and single-page application (SPA) with a Python Responder-based server and a NoSQL database. The initial focus is on login functionality, with ambitious plans to evolve into an all-encompassing app inspired by Elon Musk's concept of an 'everything app' (X).
+- **Routes:** Contains route-related files.
+- **Serverlog.{extension not decided}:** File for server logs.
+- **UserLog.{extension not decided}:** File for user logs.
+- **{more files in the future}:** Placeholder for additional files.
 
-================================================================
+## Website
+This directory is for web-related files.
 
-## Project Structure
+- **index.html:** Default root HTML file.
+- **BackendControl:** Contains JavaScript files for backend control.
+  - **Script.js:** Backend control script.
+- **Styles:** Stores CSS files for styling.
+  - **Style.css:** Main stylesheet.
+- **{more files in the future}:** Reserved for potential additional files.
 
-```
-PrivateMessenger {Main Folder}
-|── PICTURES
-|   |── icons
-|   |── other_images
-|   |── ServerHOST
-|── LiveServer
-|   |── Routes
-|   |── Serverlog.{extension not decided}
-|   |── UserLog.{extension not decided}
-|   |── {more files in the future}
-|── Website
-|   |── index.html {Default root}
-|   |── BackendControl
-|   |   |── Script.js
-|   |── Styles
-|   |   |── Style.css
-|   |── {more files in the future}
-|── UserDataStore
-|   |── NumberOfUserList
-|   |── {getUserName}_DataStore -> Multiple folders will be created
-|   |   |── chatHistory.txt
-|   |   |── ProfileData.txt
-|   |── {more files in the future}
-```
+## UserDataStore
+This directory is for storing user-related data.
 
-================================================================
+- **NumberOfUserList:** Keeps track of the number of users.
+- **{getUserName}_DataStore:** Multiple folders will be created based on usernames.
+  - **chatHistory.txt:** Stores chat history for each user.
+  - **ProfileData.txt:** Stores profile data for each user.
+- **{more files in the future}:** Placeholder for potential additional files.
 
 ## A Dream to Achieve
 
-It's not just a project; it's a dream! The goal is to create something meaningful and impactful, evolving from a private messenger to Elon Musk's vision of an 'everything app.'
-
-================================================================
+This project is more than just a development effort; it's a dream. The goal is to create something impactful and meaningful, progressing from a private messenger to Elon Musk's vision of an 'everything app.'
 
 ## Contact Information
 
 - **Twitter:** [@karnikhil90](https://twitter.com/karnikhil90)
 - **Email:** [nikhilkarmakar4020@gmail.com](mailto:nikhilkarmakar4020@gmail.com)
-
-```
-
-Your ambition shines through, and it's great to see your dedication to making a positive impact with your project! Keep dreaming big!
