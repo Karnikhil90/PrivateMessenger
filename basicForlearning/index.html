@@ -1,0 +1,385 @@
+<!-- 
+    JavaScript Explained : 
+*WebSocket Configuration:Establishes a WebSocket connection with the server, enabling real-time communication.
+*Event Listeners:Listens for WebSocket connection events (open, close, error) and updates the connection status icon accordingly.
+*Sending Messages:Monitors the message input field for the Enter key press event to send messages to the server.
+*Receiving Messages:Listens for incoming WebSocket messages and appends them to the chat history for display.
+*User Interaction:Processes received messages and formats them based on their type (user messages, server responses, error messages) before displaying them in the chat history.
+*File Input Handling:Manages file input changes, enabling users to upload files to the server for sharing.
+*Conclusion:The JavaScript code facilitates seamless interaction between users and the server, enabling real-time messaging and file sharing functionality within the chat application.
+
+     Created by: Nikhil Karmakar , Contacts = @Karnikhil90 [Github, Twitter, LinkedIn]
+     
+NOTE: This is build for ESP866 as Sever and this is a client side. So add this file to 
+the sd card of your esp866 module.
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nikhil's WhatsApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Include CSS file -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #80a8d3;
+            /* Set background color to grey */
+            color: white;
+            /* Set font color to white */
+        }
+        
+        #chatBox {
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            /* Limit chat box width */
+            max-height: 800px;
+            /* Limit chat box height */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #chatHistory {
+            flex: 1;
+            /* Expand to fill remaining space */
+            overflow-y: auto;
+            /* Enable vertical scroll if needed */
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        #inputContainer {
+            display: flex;
+            /* Ensure input container is a flexbox */
+            align-items: center;
+            /* Align items vertically */
+            margin-top: auto;
+            /* Move input container to bottom */
+        }
+        
+        #recipientInput {
+            flex: 1;
+            /* Take up remaining space */
+            margin-right: 10px;
+            /* Add space between recipient input and chat history */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        #messageInput {
+            width: 22rem;
+            flex: 1;
+            /* Take up remaining space */
+            margin-right: 10px;
+            /* Add space between message input and send button */
+            padding: 12px;
+            /* Increase padding to make input box larger */
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            box-sizing: border-box;
+            font-size: 16px;
+            /* Increase font size to make text larger */
+            font-family: Courier, monospace;
+            /* Set font family to Courier */
+        }
+        
+        #sendButton {
+            padding: 12px 18px 12px;
+            /* Adjusted padding */
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        #sendButton:hover {
+            background-color: #0056b3;
+        }
+        
+        .file-label {
+            font-size: 1.3rem;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chatBox">
+        <div id="connectionStatus">
+            <i class="fa fa-wifi"></i><br><br>
+            <input type="text" id="recipientInput" placeholder="Enter recipient's name...">
+        </div>
+        <div id="chatHistory"></div>
+        <div>
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <label id="fileLabel" for="fileInput" class="file-label">
+                <input type="file" id="fileInput" style="display: none;">
+                <i id="fileIcon" class="fa fa-plus-circle"></i>
+            </label>
+            <button id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+
+    <script>
+        // WebSocket configuration
+        const serverUrl = `ws://${window.location.host}:81/`;
+        const socket = new WebSocket(serverUrl);
+
+        // DOM elements
+        const chatHistory = document.getElementById('chatHistory');
+        const connectionStatusIcon = document.querySelector('#connectionStatus i');
+
+        // User details
+        let userName = '';
+
+        // Function to update connection status icon color
+        function updateConnectionStatusColor(connected) {
+            const color = connected ? 'green' : 'red';
+            connectionStatusIcon.style.color = color;
+        }
+
+        // Event listeners for WebSocket connection status
+        socket.addEventListener('open', () => updateConnectionStatusColor(true));
+        socket.addEventListener('close', () => updateConnectionStatusColor(false));
+        socket.addEventListener('error', () => updateConnectionStatusColor(false));
+        // Add event listener to the message input field
+        document.getElementById('messageInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Event listener for incoming WebSocket messages
+        socket.addEventListener('message', (event) => {
+            const message = event.data;
+            appendMessageToChatHistory(message);
+        });
+
+        socket.onopen = function(event) {
+            console.log('WebSocket connection opened');
+            // Call sendUserName() to send the join message
+            askUserName();
+        };
+
+        // Function to prompt user for name
+        function askUserName() {
+            userName = prompt("Please enter your name:");
+            if (!userName) {
+                alert("You must enter a name to send a message.");
+                userName = `user${Math.floor(Math.random() * 1000)}`;
+                return false;
+            }
+            const joinMessage = `/join?username=${userName}`;
+            console.log(joinMessage);
+            socket.send(joinMessage);
+            return true;
+        }
+
+        // Event listener for file input change
+        document.getElementById('fileInput').addEventListener('change', () => {
+            const fileInput = document.getElementById('fileInput');
+            const fileLabel = document.getElementById('fileLabel');
+            const recipient = document.getElementById('recipientInput');
+            if (fileInput.files.length > 0) {
+                fileLabel.style.color = 'red';
+            } else {
+                fileLabel.style.color = '';
+            }
+        });
+
+        function sendMessage() {
+            if (!userName) {
+                askUserName();
+                return;
+            }
+
+            // Get the recipient value from the input field
+            const recipientInput = document.getElementById('recipientInput');
+            const recipient = recipientInput.value.trim();
+
+            // Get the selected file
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                // Construct the file upload message
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('to', recipient);
+                formData.append('from', userName);
+
+                // Send the file upload request to the server
+                fetch(`/sendfile?to=${recipient}&from=${userName}`, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('File sent successfully.');
+                        } else {
+                            console.error('Error sending file:', response.statusText);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error sending file:', error);
+                    })
+                    .finally(() => {
+                        // Clear the file input after sending
+                        fileInput.value = '';
+                    });
+            } else {
+                // Handle sending text message if no file selected
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+                if (message === '') {
+                    alert('Please enter a message.');
+                    return;
+                }
+
+                const formattedMessage = `/message?to=${recipient}&from=${userName}&txt=[${getCurrentTimestamp()}]:${message}`;
+                console.log(formattedMessage);
+                socket.send(formattedMessage);
+                messageInput.value = ''; // Clear input field after sending message
+                appendMessageToChatHistory(`YOU>[${getCurrentTimestamp()}]:${message}`);
+            }
+        }
+
+        function getCurrentTimestamp() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function appendMessageToChatHistory(receivedMessage) {
+            console.log(receivedMessage);
+
+            // Check if the received message contains both 'from' and 'txt' parameters
+            if (receivedMessage.includes('from=') && receivedMessage.includes('txt=')) {
+                // Split the received message using the '?' and '&' characters
+                const parts = receivedMessage.split(/[?&]/);
+
+                let from = '';
+                let txt = '';
+
+                // Iterate through the parts to extract 'from' and 'txt'
+                parts.forEach(part => {
+                    const [key, value] = part.split('=');
+                    if (key === 'from') {
+                        from = decodeURIComponent(value);
+                    } else if (key === 'txt') {
+                        txt = decodeURIComponent(value);
+                    }
+                });
+
+                // Construct the message to be displayed in the chat history
+                const displayMessage = `${from}: ${txt}`;
+
+                // Create a new div element to display the message
+                // Create a container div for the message element
+                const containerDiv = document.createElement('div');
+
+                // Apply styles to the container div
+                containerDiv.style.marginLeft = 'auto'; // Auto margin on left side for alignment
+                containerDiv.style.maxWidth = '70%'; // Limit width to 70% of chat box
+                containerDiv.style.backgroundColor = '#f2f2f2'; // Set background color to grey
+                containerDiv.style.padding = '10px'; // Add padding
+                containerDiv.style.border = '1px solid #ccc'; // Add border
+                containerDiv.style.borderRadius = '10px'; // Add border radius
+                containerDiv.style.textAlign = 'right'; // Align content to the right
+
+                // Create a new div element to display the message
+                const messageElement = document.createElement('div');
+                messageElement.textContent = displayMessage;
+
+                // Apply styles to the message element
+                messageElement.style.color = 'green';
+                messageElement.style.fontSize = '1.3rem'; // Set font size to 1.3rem
+                messageElement.style.fontFamily = 'monospace, sans-serif'; // Set font family
+
+                // Append the message element to the container div
+                containerDiv.appendChild(messageElement);
+
+                // Append the container div to the chat history
+                chatHistory.appendChild(containerDiv);
+
+                // Scroll to the bottom of the chat history
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+
+            } else if (receivedMessage.includes('YOU>')) {
+                // Create a container div for the message element
+                const containerDiv = document.createElement('div');
+
+                // Apply styles to the container div
+                containerDiv.style.marginRight = 'auto'; // Auto margin on right side for alignment
+                containerDiv.style.maxWidth = '70%'; // Limit width to 70% of chat box
+                containerDiv.style.backgroundColor = '#52BE80'; // Set background color to green
+                containerDiv.style.padding = '10px'; // Add padding
+                containerDiv.style.border = '1px solid #ccc'; // Add border
+                containerDiv.style.borderRadius = '10px'; // Add border radius
+                containerDiv.style.textAlign = 'left'; // Align content to the left
+
+                // Create a new div element to display the message
+                const messageElement = document.createElement('div');
+                messageElement.textContent = receivedMessage;
+
+                // Apply styles to the message element
+                messageElement.style.color = 'white';
+                messageElement.style.fontSize = '1.3rem'; // Set font size to 1.3rem
+                messageElement.style.fontFamily = 'monospace, sans-serif'; // Set font family
+
+                // Append the message element to the container div
+                containerDiv.appendChild(messageElement);
+
+                // Append the container div to the chat history
+                chatHistory.appendChild(containerDiv);
+
+                // Scroll to the bottom of the chat history
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } else if (receivedMessage.includes('ERROR:')) {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = receivedMessage;
+                messageElement.style.color = 'red';
+                messageElement.style.fontSize = '2rem'; // Set font size to 16px
+                messageElement.style.fontWeight = 'bold'
+                messageElement.style.fontFamily = 'Trebuchet MS, sans - serif ';
+
+                chatHistory.appendChild(messageElement);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } else {
+                // If 'from' and 'txt' parameters are not found, simply print the received message
+                const messageElement = document.createElement('div');
+                messageElement.textContent = receivedMessage;
+                messageElement.style.color = 'black';
+                messageElement.style.fontSize = '2rem'; // Set font size to 16px
+                messageElement.style.fontFamily = 'monospace, sans-serif'; // Set font family
+                chatHistory.appendChild(messageElement);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
